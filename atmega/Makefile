@@ -64,7 +64,12 @@ override LDFLAGS       = -Wl,$(LDSECTION)
 OBJCOPY        = avr-objcopy
 OBJDUMP        = avr-objdump
 
-all:
+all: atmega328
+all: atmega328_pro8
+all: diecimila
+all: ng
+all: pro8
+all: mega
 
 lilypad: TARGET = lilypad
 lilypad: CFLAGS += '-DMAX_TIME_COUNT=F_CPU>>1' '-DNUM_LED_FLASHES=3'
@@ -235,4 +240,3 @@ clean:
 
 %.bin: %.elf
 	$(OBJCOPY) -j .text -j .data -O binary $< $@
-	
