@@ -1,0 +1,12 @@
+*.hex
+*.eep
+*.cof
+*.elf
+*.map
+*.sym
+*.lss
+stk500boot.o
+stk500boot.lst
+stk500boot.s
+stk500boot.d
+.dep/*
