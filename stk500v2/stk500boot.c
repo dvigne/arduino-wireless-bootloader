@@ -82,7 +82,7 @@ LICENSE:
 //*	Nov  9,	2010	<MLS> Issue 392:Fixed bug that 3 !!! in code would cause it to jump to monitor
 //*	Jun 24,	2011	<MLS> Removed analogRead (was not used)
 //*	Dec 29,	2011	<MLS> Issue 181: added watch dog timmer support
-//*	Dec 29,	2011	<MLS> Issue 505:  bootloader is comparing the seqNum to 1 or the current sequence 
+//*	Dec 29,	2011	<MLS> Issue 505:  bootloader is comparing the seqNum to 1 or the current sequence
 //*	Jan  1,	2012	<MLS> Issue 543: CMD_CHIP_ERASE_ISP now returns STATUS_CMD_FAILED instead of STATUS_CMD_OK
 //*	Jan  1,	2012	<MLS> Issue 543: Write EEPROM now does something (NOT TESTED)
 //*	Jan  1,	2012	<MLS> Issue 544: stk500v2 bootloader doesn't support reading fuses
@@ -92,8 +92,8 @@ LICENSE:
 //*	these are used to test issues
 //*	http://code.google.com/p/arduino/issues/detail?id=505
 //*	Reported by mark.stubbs, Mar 14, 2011
-//*	The STK500V2 bootloader is comparing the seqNum to 1 or the current sequence 
-//*	(IE: Requiring the sequence to be 1 or match seqNum before continuing).  
+//*	The STK500V2 bootloader is comparing the seqNum to 1 or the current sequence
+//*	(IE: Requiring the sequence to be 1 or match seqNum before continuing).
 //*	The correct behavior is for the STK500V2 to accept the PC's sequence number, and echo it back for the reply message.
 #define	_FIX_ISSUE_505_
 //************************************************************************
@@ -129,6 +129,8 @@ LICENSE:
 //#define	_DEBUG_SERIAL_
 //#define	_DEBUG_WITH_LEDS_
 
+#define	true	1
+#define	false	0
 
 /*
  * Uncomment the following lines to save code space
@@ -458,6 +460,19 @@ void delay_ms(unsigned int timedelay)
 	}
 }
 
+//*****************************************************************************
+int sizeofstr(char str[]) {
+  int length = 0;
+  while(true) {
+    if(str[length] != '\0'){
+      length++;
+    }
+    else {
+      break;
+    }
+  }
+  return length;
+}
 
 //*****************************************************************************
 /*
@@ -470,6 +485,18 @@ static void sendchar(char c)
 	UART_STATUS_REG |= (1 << UART_TRANSMIT_COMPLETE);			// delete TXCflag
 }
 
+//*****************************************************************************
+/*
+ * send a whole string to USART, wait until transmission is completed
+ */
+ static void sendstring(char str[])
+ {
+	 for(int i = 0; i < sizeofstr(str); i++) {
+		 sendchar(str[i]);
+	 }
+	 sendchar(0x0d);
+	 sendchar(0x0a);
+ }
 
 //************************************************************************
 static int	Serial_Available(void)
@@ -624,16 +651,7 @@ int main(void)
 #ifdef _DEBUG_SERIAL_
 //	delay_ms(500);
 
-	sendchar('s');
-	sendchar('t');
-	sendchar('k');
-//	sendchar('5');
-//	sendchar('0');
-//	sendchar('0');
-	sendchar('v');
-	sendchar('2');
-	sendchar(0x0d);
-	sendchar(0x0a);
+	sendstring("Custom STK500V2 bootloader loaded");
 
 	delay_ms(100);
 #endif
@@ -680,7 +698,7 @@ int main(void)
 				{
 				//	c	=	recchar();
 					c	=	recchar_timeout();
-					
+
 				}
 
 			#ifdef ENABLE_MONITOR
@@ -1112,7 +1130,7 @@ int main(void)
 			}
 			sendchar(checksum);
 			seqNum++;
-	
+
 		#ifndef REMOVE_BOOTLOADER_LED
 			//*	<MLS>	toggle the LED
 			PROGLED_PORT	^=	(1<<PROGLED_PIN);	// active high LED ON
@@ -1210,10 +1228,6 @@ avrdude>
 unsigned long	gRamIndex;
 unsigned long	gFlashIndex;
 unsigned long	gEepromIndex;
-
-
-#define	true	1
-#define	false	0
 
 #include	"avr_cpunames.h"
 
@@ -1613,7 +1627,7 @@ int		errorCount;
 
 
 #if (FLASHEND > 0x08000)
-//*	this includes the interrupt names for the monitor portion. There is no longer enough 
+//*	this includes the interrupt names for the monitor portion. There is no longer enough
 //*	memory to include this
 //	#include	"avrinterruptnames.h"
 //	#ifndef _INTERRUPT_NAMES_DEFINED_
@@ -1660,7 +1674,7 @@ unsigned long	absoluteAddr;
 		sendchar('=');
 		sendchar(0x20);
 
-	
+
 		//*	the AVR is LITTLE ENDIAN, swap the byte order
 	#if (FLASHEND > 0x10000)
 		byte1	=	pgm_read_byte_far(myMemoryPtr++);
@@ -1685,7 +1699,7 @@ unsigned long	absoluteAddr;
 		sendchar(0x20);
 		PrintHexByte(byte3);
 		sendchar(0x20);
-	
+
 		if (word1 == 0xffff)
 		{
 			PrintFromPROGMEM(gTextMsg_noVector, 0);
@@ -1705,7 +1719,7 @@ unsigned long	absoluteAddr;
 			PrintHexByte((absoluteAddr >> 16) & 0x00ff);
 			PrintHexByte((absoluteAddr >> 8) & 0x00ff);
 			PrintHexByte((absoluteAddr) & 0x00ff);
-	
+
 		}
 		else if ((word1 & 0xfE0E) == 0x940c)
 		{
@@ -1714,9 +1728,9 @@ unsigned long	absoluteAddr;
 								((byte1 & 0xf0) << 17) +
 								((byte2 & 0x01) << 21) +
 								word2;
-							
+
 			absoluteAddr	=	myFullAddress << 1;
-							
+
 			PrintFromPROGMEM(gTextMsg_jmp, 0);
 			PrintHexByte((myFullAddress >> 16) & 0x00ff);
 			PrintHexByte((myFullAddress >> 8) & 0x00ff);
@@ -2073,7 +2087,7 @@ int				ii, jj;
 					gEepromIndex	=	0;
 				}
 				break;
-		
+
 			case 'F':
 				PrintFromPROGMEMln(gTextMsg_HELP_MSG_F, 2);
 				DumpHex(kDUMP_FLASH, gFlashIndex, 16);
@@ -2110,7 +2124,7 @@ int				ii, jj;
 				PrintFromPROGMEMln(gTextMsg_HELP_MSG_Y, 2);
 				AVR_PortOutput();
 				break;
-			
+
 			default:
 				PrintFromPROGMEMln(gTextMsg_HUH, 0);
 				break;
@@ -2119,4 +2133,3 @@ int				ii, jj;
 }
 
 #endif
-
